@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "gpezao",
+  "description": "Marketplace personal de Gabriel Pezoa para Claude Code.",
+  "owner": {
+    "name": "Gabriel Pezoa",
+    "email": "gabriel.pezoa@healthatom.com"
+  },
+  "plugins": [
+    {
+      "name": "orchestration",
+      "source": "./plugins/orchestration",
+      "description": "Modelo de trabajo orquestado: una sesión conductora con autoridad total dirige subagentes especializados (planner, implementer, tester, reviewer, security-reviewer, release, explorer, debugger) en contextos aislados. Grill en el intake, estado en git, red de seguridad del agente.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Gabriel Pezoa"
+      },
+      "keywords": ["orchestration", "agents", "workflow", "conductor", "planner", "tester", "reviewer"]
+    }
+  ]
+}
