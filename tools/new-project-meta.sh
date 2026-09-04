@@ -7,7 +7,7 @@
 #   META_HOME — directorio raíz para los meta de proyectos
 #               (default: directorio padre del script; ~/Sites/meta si clonaste ahí)
 #   SITES     — directorio raíz de repos de código
-#               (default: ~/Sites)
+#               (default: ~/Proyectos)
 set -euo pipefail
 
 PROY="${1:-}"
@@ -16,7 +16,7 @@ if [[ -z "$PROY" ]]; then
   exit 1
 fi
 
-SITES="${SITES:-$HOME/Sites}"
+SITES="${SITES:-$HOME/Proyectos}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 META_HOME="${META_HOME:-$(dirname "$SCRIPT_DIR")}"
 CODIGO="${SITES}/${PROY}"
