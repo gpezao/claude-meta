@@ -35,7 +35,7 @@ if [[ -e "$META" ]]; then
   exit 1
 fi
 
-mkdir -p "$META/.claude" "$META/decisions" "$META/handoffs" "$META/retrospectives"
+mkdir -p "$META/.claude" "$META/decisions" "$META/handoffs" "$META/retrospectives" "$META/revision"
 
 # Shim CLAUDE.md del proyecto (fija RUTA_CODIGO). Se carga porque la sesión
 # arranca en este directorio.
@@ -137,10 +137,12 @@ cat > "$META/.claude/settings.json" <<'EOF'
 EOF
 
 # .gitignore: si se versiona el directorio meta, no versionar allows locales
-# ni artefactos de handoff transitorios.
+# ni artefactos de handoff transitorios, ni el material que se deja al humano
+# para revisar (ver CHECKPOINTS.md).
 cat > "$META/.gitignore" <<'EOF'
 .claude/settings.local.json
 .claude/handoffs/
+revision/
 EOF
 
 # VISION.md a completar por el humano (el conductor lo lee en cada arranque).

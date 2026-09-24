@@ -23,6 +23,9 @@ autoridad total dirige subagentes especializados en contextos aislados.
 - `MODELO-OPERATIVO.md` — el proceso completo: grill en el intake, pipeline
   de subagentes, autoridad total, estado en git.
 - `SESSION-START.md` — cómo abrir una sesión y el primer prompt.
+- `CHECKPOINTS.md` — cómo un agente le pide decisiones al humano sin
+  obligarlo a scrollear, y dónde deja el material a revisar (`revision/`).
+  Se carga en toda sesión desde `~/.claude/CLAUDE.md`.
 
 ## Cómo funciona
 

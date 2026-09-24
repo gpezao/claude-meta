@@ -2,8 +2,8 @@
 
 > Documento de proceso compartido. Cada proyecto tiene su propio directorio
 > de trabajo (en adelante, `META_DIR`) con sus `decisions/`, `handoffs/`,
-> `retrospectives/` y `VISION.md`. El repo de código de cada proyecto es
-> `RUTA_CODIGO`.
+> `retrospectives/`, `revision/` y `VISION.md`. El repo de código de cada
+> proyecto es `RUTA_CODIGO`.
 
 ## En una frase
 
@@ -108,6 +108,11 @@ armadas cierran lo que quince preguntas sueltas no.
 Preguntar con opciones fuerza además la disciplina correcta: si no puedes
 enumerar las alternativas, no investigaste lo suficiente como para preguntar.
 
+Cómo se escribe cada pregunta para que se entienda sola, cuándo va por
+`AskUserQuestion` y cuándo en texto, y dónde se deja el material a revisar
+está en **`CHECKPOINTS.md`**. Aplica a todo checkpoint —intake, bifurcaciones
+mid-flight y aprobaciones de push, PR o deploy—, no solo a esta ronda.
+
 ### También en las bifurcaciones mid-flight
 
 El grill no vive solo en el intake. Cuando una etapa del pipeline vuelve con
@@ -186,6 +191,10 @@ sesiones: el conductor lee el retorno del subagente en proceso y decide.
 Donde el prompt de un subagente diga "invoca al siguiente agente en una
 sesión nueva", eso es lenguaje heredado del modelo viejo — el conductor
 simplemente spawnea la siguiente etapa.
+
+Los handoffs son para la próxima sesión. Lo que se deja para que el **humano**
+revise —borradores de PR, capturas, alternativas— no va ahí sino en
+`revision/` del directorio de trabajo, con la estructura de `CHECKPOINTS.md`.
 
 ---
 
