@@ -18,16 +18,22 @@ con autoridad total dirige subagentes especializados en contextos aislados.
 
 Esto copia los 8 subagentes a `~/.claude/agents/`.
 
-## Activar la regla de checkpoints en todas las sesiones
+## Activar las reglas globales en todas las sesiones
 
-`CHECKPOINTS.md` define cómo un agente te pide decisiones (cada pregunta se
-entiende sola, sin scrollear) y dónde deja lo que tienes que revisar. Para
-que aplique en toda sesión de Claude Code, no solo en las del modelo
-orquestado, importarlo desde la memoria de usuario. Con el repo clonado en
-`~/Proyectos/claude-meta`, agrega esta línea a `~/.claude/CLAUDE.md` (créalo
-si no existe):
+Dos reglas aplican en toda sesión de Claude Code, no solo en las del modelo
+orquestado:
+
+- `ANTES-DE-EJECUTAR.md`: ante un pedido nuevo, el agente investiga, pregunta
+  y confirma lo que entendió antes de ejecutar.
+- `CHECKPOINTS.md`: cómo te pide decisiones (cada pregunta se entiende sola,
+  sin scrollear) y dónde deja lo que tienes que revisar.
+
+Se importan desde la memoria de usuario. Con el repo clonado en
+`~/Proyectos/claude-meta`, agrega estas líneas a `~/.claude/CLAUDE.md`
+(créalo si no existe):
 
 ```
+@~/Proyectos/claude-meta/plugins/orchestration/ANTES-DE-EJECUTAR.md
 @~/Proyectos/claude-meta/plugins/orchestration/CHECKPOINTS.md
 ```
 
@@ -83,6 +89,7 @@ plugins/
       debugger.md
     MODELO-OPERATIVO.md    ← documento de proceso completo
     SESSION-START.md       ← cómo abrir una sesión y el primer prompt
+    ANTES-DE-EJECUTAR.md   ← investigar, preguntar y confirmar antes de ejecutar
     CHECKPOINTS.md         ← forma de los checkpoints y carpeta revision/
     README.md
 tools/
@@ -104,7 +111,8 @@ el detalle completo del proceso.
 ## Características
 
 - **Grill en el intake**: el conductor interroga antes de ejecutar por
-  defecto; usa `AskUserQuestion` en rondas batcheadas.
+  defecto; usa `AskUserQuestion` en rondas batcheadas. La base
+  (`ANTES-DE-EJECUTAR.md`) rige en toda sesión.
 - **Checkpoints legibles**: cada decisión que se le pide al humano trae su
   contexto y sus opciones al lado; el material a revisar va a `revision/`
   del proyecto.

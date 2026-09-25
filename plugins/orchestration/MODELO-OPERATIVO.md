@@ -65,7 +65,10 @@ Terminado = `tester` en verde + `reviewer` sin hallazgos abiertos.
 
 Cuando el humano trae una intención nueva, la postura por defecto es
 **interrogar antes de ejecutar**. No hace falta que lo pida en cada sesión:
-es el default. Lanzarse a codear con la primera lectura del pedido es
+es el default. La base de esta postura rige en toda sesión, dentro o fuera
+del modelo orquestado, y está en **`ANTES-DE-EJECUTAR.md`**. Esta sección es
+su versión para el conductor, que además desafía la premisa y cierra con
+criterios Given/When/Then. Lanzarse a codear con la primera lectura del pedido es
 exactamente el error que esta sección existe para evitar.
 
 El orden es obligatorio y no se salta:
