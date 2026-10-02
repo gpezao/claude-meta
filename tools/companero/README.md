@@ -68,6 +68,9 @@ Log y estado del vigía: `%LOCALAPPDATA%\companero\` (`vigia.log`, y
 - **`state.json` es un archivo interno de Claude Code, sin documentar.** Una
   actualización puede cambiarlo; para eso está el respaldo con
   `claude agents --json`.
+- **En Windows 10 la consola del clic se ve un instante.** En Windows 11 no:
+  el script corre con `conhost --headless`. En los dos casos, Git Bash sale al
+  frente con la sesión (`ventana.ps1`).
 - **El aviso dura unos segundos en pantalla** y después queda en el centro de
   notificaciones de Windows. Si tienes activado "No molestar", Windows los
   guarda sin mostrarlos.

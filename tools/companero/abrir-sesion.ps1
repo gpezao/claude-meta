@@ -25,7 +25,10 @@ Registrar "abre la sesión $id"
 
 $gitBash = Join-Path $env:ProgramFiles 'Git\git-bash.exe'
 if (Test-Path $gitBash) {
+    $inicio = Get-Date
     Start-Process -FilePath $gitBash -ArgumentList @('-c', "`"claude attach $id; exec bash -l`"")
+    . (Join-Path $PSScriptRoot 'ventana.ps1')
+    if (-not (Traer-GitBashAlFrente -Desde $inicio)) { Registrar "no se pudo traer Git Bash al frente ($id)" }
 }
 elseif (Get-Command wt.exe -ErrorAction SilentlyContinue) {
     Start-Process -FilePath 'wt.exe' -ArgumentList @('new-tab', 'cmd', '/k', "claude attach $id")

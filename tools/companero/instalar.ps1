@@ -9,13 +9,24 @@
 $ErrorActionPreference = 'Stop'
 $null = Get-Command node -ErrorAction Stop
 
+# En Windows 11, conhost --headless corre PowerShell sin mostrar ninguna
+# consola. En Windows 10 se usa -WindowStyle Hidden, que deja ver la consola un
+# instante.
+$sinVentana = [Environment]::OSVersion.Version.Build -ge 22000
+function ComandoOculto([string]$script, [string]$argumentos = '') {
+    $ps = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" $argumentos".TrimEnd()
+    if ($sinVentana) { return @{ Programa = 'conhost.exe'; Argumentos = "--headless $ps" } }
+    return @{ Programa = 'powershell.exe'; Argumentos = $ps.Substring('powershell.exe '.Length) }
+}
+
 $protocolo = 'HKCU:\Software\Classes\companero'
 $abrir = Join-Path $PSScriptRoot 'abrir-sesion.ps1'
+$alAbrir = ComandoOculto $abrir '"%1"'
 New-Item -Path "$protocolo\shell\open\command" -Force | Out-Null
 Set-ItemProperty -Path $protocolo -Name '(default)' -Value 'URL:Compañero (Claude Code)'
 Set-ItemProperty -Path $protocolo -Name 'URL Protocol' -Value ''
 Set-ItemProperty -Path "$protocolo\shell\open\command" -Name '(default)' `
-    -Value "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$abrir`" `"%1`""
+    -Value "$($alAbrir.Programa) $($alAbrir.Argumentos)"
 
 $aumid = 'HKCU:\Software\Classes\AppUserModelId\ClaudeMeta.Companero'
 New-Item -Path $aumid -Force | Out-Null
@@ -24,8 +35,9 @@ Set-ItemProperty -Path $aumid -Name 'DisplayName' -Value 'Compañero'
 $acceso = Join-Path ([Environment]::GetFolderPath('Startup')) 'Compañero (vigía).lnk'
 $shell = New-Object -ComObject WScript.Shell
 $atajo = $shell.CreateShortcut($acceso)
-$atajo.TargetPath = 'powershell.exe'
-$atajo.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$(Join-Path $PSScriptRoot 'iniciar-vigia.ps1')`""
+$alIniciar = ComandoOculto (Join-Path $PSScriptRoot 'iniciar-vigia.ps1')
+$atajo.TargetPath = $alIniciar.Programa
+$atajo.Arguments = $alIniciar.Argumentos
 $atajo.WorkingDirectory = $PSScriptRoot
 $atajo.Description = 'Vigía del compañero: avisa cuando una sesión de Claude Code te necesita.'
 $atajo.Save()
