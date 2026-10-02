@@ -94,6 +94,7 @@ plugins/
     README.md
 tools/
   new-project-meta.sh      ← genera el directorio de trabajo de un proyecto
+  companero/               ← avisos de Windows cuando una sesión te necesita (ver su README)
 ```
 
 ## El modelo en una frase
