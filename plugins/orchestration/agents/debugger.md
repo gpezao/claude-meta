@@ -20,11 +20,22 @@ ignora esta sección y ejecuta tú el rol según las instrucciones que siguen.
 1. Revisa la cuota en `~/.claude/cache/codex-usage.json`. Si `ok` es `true` y
    `primary.usedPercent` es 80 o más, no llames a Codex: responde solo
    `CODEX_NO_DISPONIBLE: ventana de 5 h en <n>%`.
-2. Escribe el encargo para Codex en un archivo temporal, con:
-   - las instrucciones de este rol: todo lo que sigue a esta sección, tal cual;
-   - el pedido completo del conductor, sin resumirlo, porque Codex no ve la
+2. Arma el encargo en un archivo temporal sin reescribir nada a mano. Copia
+   las instrucciones de este rol con este comando, que toma todo lo que sigue a
+   esta sección tal cual:
+
+   ```bash
+   A=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/agents/debugger.md | sort -V | tail -1)
+   P=$(cygpath -w "$(mktemp)")
+   awk 'f; s && /^---\r?$/ {f=1} /^## Ejecución en Codex/ {s=1}' "$A" > "$P"
+   ```
+
+   Después agrega a `$P`, con un heredoc:
+   - el pedido completo del conductor, tal como llegó, porque Codex no ve la
      conversación;
    - el directorio del repo y las rutas que mencionó el conductor.
+
+   Usa `"$P"` como `<archivo>` en el paso siguiente.
 3. Lanza la tarea en segundo plano:
 
    ```bash
