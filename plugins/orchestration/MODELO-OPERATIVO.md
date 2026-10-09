@@ -177,6 +177,55 @@ El tamaño del trabajo decide cuántas etapas se usan: un cambio de dos
 líneas no necesita `planner` ni `implementer`; una feature multi-archivo
 las usa todas.
 
+### Modelo, esfuerzo y cuota por rol (decisión 0002)
+
+Cada rol corre con el modelo y el esfuerzo de la decisión 0002
+(`claude-meta-meta/decisions/0002-modelo-y-esfuerzo-por-rol.md`), elegidos
+por calidad medida en una prueba propia y por consumo de cuota.
+
+| Rol | Corre en | Si la cuota de ese proveedor está ajustada |
+|---|---|---|
+| `explorer` | Claude Haiku 5.5 · medium | — (consumo bajo) |
+| `planner` | Codex GPT-6.1-Sol · high (puente) | Claude Opus 5.5 · high |
+| `implementer` | Codex GPT-6.1-Sol · high (puente) | Claude Sonnet 5.5 · high |
+| `tester` | Claude Sonnet 5.5 · high | — |
+| `reviewer` | Claude Opus 5.5 · high | Codex GPT-6.1-Sol · high |
+| `security-reviewer` | Claude Opus 5.5 · high | Codex GPT-6.1-Sol · high |
+| `debugger` | Codex GPT-6.1-Sol · high (puente) | Claude Opus 5.5 · high |
+| `release` | Claude Haiku 5.5 · medium | — |
+| redacción | El conductor, o `general-purpose` con `model: "opus"` | — |
+
+**El conductor** trabaja con Opus 5.5 en high (`~/.claude/settings.json`).
+Usa xhigh solo cuando el humano lo pide para una tarea puntual. Un subagente
+sin `effort` propio corre con el esfuerzo de la sesión.
+
+**Puente a Codex.** `planner`, `implementer` y `debugger` son subagentes de
+Claude (Haiku 5.5) que arman el encargo y lo ejecutan en Codex con el script
+del plugin `codex`. Devuelven la salida de Codex tal cual.
+
+**Cambio de proveedor.** El statusline muestra la ventana de 5 h de cada
+proveedor.
+
+- **Codex no disponible.** Pasa cuando un puente responde
+  `CODEX_NO_DISPONIBLE`, o cuando la ventana de 5 h de Codex pasa de 80%. El
+  conductor vuelve a invocar el mismo agente con `MODO: directo` en la
+  primera línea del prompt y el `model` de la columna de la derecha: `opus`
+  para `planner` y `debugger`, `sonnet` para `implementer`. En Claude Code
+  2.1.283, el alias `sonnet` apunta a Sonnet 5, no a 5.5.
+- **Claude con la ventana de 5 h sobre 80%.** La revisión pasa a Codex:
+  `review --wait --model gpt-6.1-sol` del script del plugin `codex`, o
+  `adversarial-review` para seguridad. `explorer` y `release` siguen en
+  Haiku.
+
+**Topes.**
+
+- El esfuerzo llega hasta high. xhigh, max y ultra se usan solo si el humano
+  los pide para una tarea puntual: un plan de GPT-6-Astra gastó entre 27 y 43
+  puntos de la ventana de 5 h de Codex en xhigh, y entre 5 y 7 en medium.
+- GPT-6-Astra y Claude Fable 5.1 se usan solo a pedido.
+- En Windows, el sandbox de Codex no lee carpetas dentro de `AppData` ni
+  ejecuta `flutter test`. Los tests los corre el `tester` en Claude.
+
 ### Nota sobre los artefactos de handoff
 
 Los prompts de los subagentes les piden escribir su salida en
