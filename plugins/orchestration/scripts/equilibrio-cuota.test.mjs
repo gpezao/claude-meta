@@ -25,9 +25,17 @@ function codex(usado, pct, h5 = 0, reached = null) {
   }, AHORA);
 }
 
-test("ritmo = % usado / % transcurrido, con piso de 10% transcurrido", () => {
+test("ritmo = % usado / % transcurrido, con piso de 25% transcurrido", () => {
   assert.equal(claude(50, 50).ritmo.toFixed(2), "1.00");
-  assert.equal(codex(5, 2).ritmo.toFixed(2), "0.50");
+  assert.equal(codex(5, 2).ritmo.toFixed(2), "0.20");
+});
+
+test("semana de Codex recién reiniciada: el piso evita que su ritmo parezca alto", () => {
+  // Lectura del 22-10-2026: Claude 67% con 81% transcurrido, Codex 7% con 10%.
+  const r = decidir({ claude: claude(67, 81), codex: codex(7, 10) });
+  assert.equal(r.desvio, "claude");
+  assert.equal(r.roles.explorer.proveedor, "codex");
+  assert.equal(r.conductorDelega, true);
 });
 
 test("una ventana ya reiniciada cuenta desde cero", () => {
@@ -131,7 +139,7 @@ test("ventana de 5 h en 90% o más: los roles flexibles van al otro proveedor", 
   const r = decidir({ claude: claude(50, 50), codex: codex(50, 50, 92) });
   for (const rol of ["planner", "implementer", "debugger"]) {
     assert.equal(r.roles[rol].proveedor, "claude", rol);
-    assert.match(r.roles[rol].motivo, /tope de 5 h/);
+    assert.match(r.roles[rol].motivo, /ventana de 5 h en 92%/);
   }
 });
 
@@ -189,4 +197,44 @@ test("reached informado cuenta como agotado", () => {
 test("Codex agotado y Claude sobre el tope de 5 h: va a Claude igual", () => {
   const r = decidir({ claude: claude(50, 50, 95), codex: codex(100, 80) });
   assert.equal(r.roles.planner.proveedor, "claude");
+});
+
+test("Claude con la ventana de 5 h en 60% o más: sus roles flexibles pasan a Codex y el conductor delega", () => {
+  const r = decidir({ claude: claude(50, 50, 65), codex: codex(50, 50, 20), implementer: "ninguno" });
+  assert.equal(r.desvio, null);
+  assert.equal(r.roles.explorer.proveedor, "codex");
+  assert.match(r.roles.explorer.motivo, /claude con la ventana de 5 h en 65%/);
+  assert.equal(r.roles.reviewer.proveedor, "codex");
+  assert.equal(r.roles.implementer.proveedor, "codex");
+  assert.equal(r.conductorDelega, true);
+});
+
+test("Claude bajo 60% en la ventana de 5 h: rige la asignación medida", () => {
+  const r = decidir({ claude: claude(50, 50, 59), codex: codex(50, 50, 20) });
+  assert.equal(r.roles.explorer.proveedor, "claude");
+  assert.equal(r.conductorDelega, false);
+});
+
+test("presión de 5 h con desvío contra Codex: los roles flexibles vuelven a Codex", () => {
+  const r = decidir({ claude: claude(20, 50, 70), codex: codex(60, 50, 10) });
+  assert.equal(r.desvio, "codex");
+  assert.equal(r.roles.implementer.proveedor, "codex");
+  assert.match(r.roles.implementer.motivo, /claude con la ventana de 5 h/);
+});
+
+test("los dos con la ventana de 5 h en 60% o más: no hay cambio por presión", () => {
+  const r = decidir({ claude: claude(50, 50, 70), codex: codex(50, 50, 65) });
+  assert.equal(r.roles.explorer.proveedor, "claude");
+  assert.equal(r.roles.implementer.proveedor, "codex");
+});
+
+test("la revisión cruzada pesa más que la presión de 5 h", () => {
+  const r = decidir({ claude: claude(50, 50, 70), codex: codex(50, 50, 10), implementer: "codex" });
+  assert.equal(r.roles.reviewer.proveedor, "claude");
+});
+
+test("Codex con la ventana de 5 h en 60% o más y Claude libre: los puentes pasan a Claude", () => {
+  const r = decidir({ claude: claude(50, 50, 10), codex: codex(50, 50, 75) });
+  assert.equal(r.roles.planner.proveedor, "claude");
+  assert.equal(r.roles.implementer.proveedor, "claude");
 });

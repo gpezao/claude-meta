@@ -8,6 +8,8 @@
 //     sus roles flexibles pasan a la alternativa hasta que la diferencia baje
 //     de 0,10. Ritmo = % usado de la semana / % transcurrido de la semana.
 //   - La revisión la hace siempre un proveedor distinto al del implementer.
+//   - Un proveedor con la ventana de 5 h en 60% o más cede sus roles
+//     flexibles al otro si el otro está bajo 60% (decisión 0004).
 //   - Un proveedor con la ventana de 5 h en 90% o más no recibe tareas nuevas
 //     si el otro puede recibirlas; sin alternativa, sigue con aviso.
 //   - Un proveedor agotado no recibe tareas: el otro sigue solo.
@@ -25,9 +27,13 @@ import { fileURLToPath } from "node:url";
 export const UMBRAL_DESVIO = 0.25;
 export const UMBRAL_REGRESO = 0.1;
 export const TOPE_5H = 90;
+// Desde este % de la ventana de 5 h, los roles flexibles pasan al otro
+// proveedor si ese está bajo el mismo umbral (decisión 0004).
+export const PRESION_5H = 60;
 // Piso del % transcurrido al calcular el ritmo, para que las primeras horas
-// de la semana no den ritmos extremos (10% de 7 días son unas 17 h).
-export const PISO_TRANSCURRIDO = 10;
+// de la semana no den ritmos extremos (25% de 7 días son 42 h). Con 10%, el
+// uso de las primeras horas tras un reinicio inflaba el ritmo (decisión 0004).
+export const PISO_TRANSCURRIDO = 25;
 
 const SEMANA = 7 * 24 * 3600;
 const OTRO = { claude: "codex", codex: "claude" };
@@ -138,9 +144,21 @@ function aplicarBloqueos(elegido, motivo, prov) {
   return { proveedor: masMargen, motivo: "los dos sobre el tope de 5 h: sigue el que tiene más margen", aviso: true };
 }
 
+function presionado(p) {
+  return (p.h5?.usado ?? 0) >= PRESION_5H;
+}
+
+// La presión de la ventana de 5 h pesa más que el ritmo semanal: es la que
+// corta el trabajo en el día.
 function porRitmo(def, desvio, prov) {
-  if (desvio === def.base) return aplicarBloqueos(OTRO[def.base], `desvío: ${def.base} va más rápido`, prov);
-  return aplicarBloqueos(def.base, "asignación medida", prov);
+  let elegido = def.base, motivo = "asignación medida";
+  if (desvio === def.base) { elegido = OTRO[def.base]; motivo = `desvío: ${def.base} va más rápido`; }
+  const otro = OTRO[elegido];
+  if (presionado(prov[elegido]) && !presionado(prov[otro]) && !bloqueo(prov[otro])) {
+    motivo = `${elegido} con la ventana de 5 h en ${Math.round(prov[elegido].h5.usado)}%`;
+    elegido = otro;
+  }
+  return aplicarBloqueos(elegido, motivo, prov);
 }
 
 // La revisión cruzada pesa más que el ritmo y que el tope de 5 h; solo cede
@@ -182,7 +200,7 @@ export function decidir({ claude, codex, previo = null, implementer }) {
 
   for (const [rol, r] of Object.entries(roles)) r.como = ROLES[rol][r.proveedor] ?? "—";
 
-  const conductorDelega = !bloqueo(codex) && (desvio === "claude" || bloqueo(claude) != null);
+  const conductorDelega = !bloqueo(codex) && (desvio === "claude" || bloqueo(claude) != null || (presionado(claude) && !presionado(codex)));
   return { desvio, roles, conductorDelega };
 }
 

@@ -177,14 +177,16 @@ El tamaño del trabajo decide cuántas etapas se usan: un cambio de dos
 líneas no necesita `planner` ni `implementer`; una feature multi-archivo
 las usa todas.
 
-### Modelo, esfuerzo y cuota por rol (decisiones 0002 y 0003)
+### Modelo, esfuerzo y cuota por rol (decisiones 0002, 0003 y 0004)
 
 Cada rol corre con el modelo y el esfuerzo de la decisión 0002
 (`claude-meta-meta/decisions/0002-modelo-y-esfuerzo-por-rol.md`), elegidos
 por calidad medida en una prueba propia y por consumo de cuota. La decisión
 0003 (`claude-meta-meta/decisions/0003-equilibrio-de-cuota-entre-proveedores.md`)
 agrega cuándo un rol pasa a su alternativa para que las cuotas de Claude y de
-Codex se gasten al mismo ritmo.
+Codex se gasten al mismo ritmo. La decisión 0004
+(`claude-meta-meta/decisions/0004-ventana-de-5-h-y-contexto-del-conductor.md`)
+suma la presión de la ventana de 5 h y el límite de contexto del conductor.
 
 | Rol | Base | Alternativa (desvío o cuota) |
 |---|---|---|
@@ -201,6 +203,17 @@ Codex se gasten al mismo ritmo.
 **El conductor** trabaja con Opus 5.5 en high (`~/.claude/settings.json`).
 Usa xhigh solo cuando el humano lo pide para una tarea puntual. Un subagente
 sin `effort` propio corre con el esfuerzo de la sesión.
+
+**Contexto del conductor (decisión 0004).** Cada turno del conductor vuelve a
+leer todo su contexto, así que una sesión larga gasta la ventana de 5 h de
+Claude aunque haga poco. Al pasar de unos **200k tokens** (el statusline lo
+marca con `⚠ nueva sesión`), el conductor cierra lo que tiene en curso,
+escribe un handoff en `handoffs/` con el estado, lo pendiente y las
+decisiones tomadas, y le propone al humano seguir en una sesión nueva que
+arranque leyendo ese handoff. No lo propone a mitad de una etapa de subagente:
+espera su retorno. Para no llegar ahí antes de tiempo, las lecturas largas
+(archivos grandes, barridos, logs) van a `explorer`, no al contexto del
+conductor.
 
 **Puente a Codex.** `planner`, `implementer` y `debugger` son subagentes de
 Claude (Haiku 5.5) que arman el encargo y lo ejecutan en Codex con el script
@@ -219,13 +232,18 @@ La salida dice en qué proveedor corre cada rol, por qué y cómo invocarlo. El
 script lee el uso que el statusline deja en `~/.claude/cache/`. Las reglas:
 
 - **Ritmo** = % usado de la semana ÷ % transcurrido de la semana, con un
-  mínimo de 10% transcurrido. 1,0 es gastar la cuota justo cuando se
-  reinicia. Se compara el ritmo y no el porcentaje porque las semanas de
+  mínimo de 25% transcurrido (unas 42 h), para que el uso de las primeras
+  horas tras un reinicio no infle el ritmo. 1,0 es gastar la cuota justo
+  cuando se reinicia. Se compara el ritmo y no el porcentaje porque las semanas de
   Claude y de Codex se reinician en días distintos.
 - **Desvío.** Si el ritmo de un proveedor supera al del otro en más de 0,25,
   sus roles flexibles (`explorer`, `planner`, `implementer`, `debugger`)
   pasan a la alternativa. Vuelven a la base cuando la diferencia baja de
   0,10.
+- **Presión de 5 h (decisión 0004).** Si un proveedor tiene la ventana de
+  5 h en 60% o más y el otro está bajo 60%, los roles flexibles del primero
+  pasan al otro, aunque el ritmo semanal diga lo contrario. Es la ventana que
+  corta el trabajo en el día.
 - **Revisión cruzada.** `reviewer` y `security-reviewer` corren siempre en un
   proveedor distinto al del implementer de la card, por encima del ritmo y del
   tope de 5 h; solo cede si ese proveedor está agotado. `--implementer` indica
@@ -243,8 +261,8 @@ script lee el uso que el statusline deja en `~/.claude/cache/`. Las reglas:
 - **Fijos en Claude:** `tester`, porque el sandbox de Codex no corre
   `flutter test`, y `release`, porque el push desde Codex no está probado.
 - **Conductor.** Cuando el desvío es contra Claude, o Claude está sobre el
-  tope de 5 h, el conductor manda a Codex las investigaciones y los barridos
-  de código pesados: `explorer` con `MODO: codex`, o
+  tope de 5 h o con presión de 5 h, el conductor manda a Codex las
+  investigaciones y los barridos de código pesados: `explorer` con `MODO: codex`, o
   `task --model gpt-6.1-sol --effort high` para un análisis. El intake, los
   checkpoints, la redacción de entregables y la síntesis siguen en Claude.
 
