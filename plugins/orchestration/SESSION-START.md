@@ -37,7 +37,8 @@ curl -fsSL https://raw.githubusercontent.com/gpezao/claude-meta/main/tools/new-p
 
 El generador verifica que `RUTA_CODIGO` exista y sea un repo git, y deja el
 shim `CLAUDE.md`, el `settings.json`, un `VISION.md` a completar y las
-carpetas `decisions/`, `handoffs/`, `retrospectives/`.
+carpetas `decisions/`, `handoffs/`, `retrospectives/` y `revision/` (el
+material que los agentes dejan para que revises; ver `CHECKPOINTS.md`).
 
 ## Subagentes disponibles
 
