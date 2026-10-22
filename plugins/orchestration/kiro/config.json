@@ -16,6 +16,11 @@
       "inclusion": "always"
     },
     {
+      "claude": "plugins/orchestration/NOTAS-DE-SESION.md",
+      "kiro": "notas-de-sesion.md",
+      "inclusion": "always"
+    },
+    {
       "claude": "plugins/orchestration/kiro/ADAPTACION-KIRO.md",
       "kiro": "adaptacion-kiro.md",
       "inclusion": "always"

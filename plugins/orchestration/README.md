@@ -32,6 +32,11 @@ autoridad total dirige subagentes especializados en contextos aislados.
 - `REDACCION-DE-ENTREGABLES.md` — tono neutral, hechos con fuente y sin
   copiar el contexto interno en lo que se comparte. Se carga en toda sesión
   desde `~/.claude/CLAUDE.md`.
+- `NOTAS-DE-SESION.md` — las correcciones y decisiones del humano se anotan
+  en un archivo en el momento, para que la compactación no las pierda. Se
+  carga en toda sesión desde `~/.claude/CLAUDE.md`.
+- `hooks/hooks.json` — avisa al agente desde 250k tokens de contexto y le
+  devuelve sus notas después de compactar (`scripts/contexto-hook.mjs`).
 
 ## Cómo funciona
 

@@ -20,7 +20,7 @@ Esto copia los 8 subagentes a `~/.claude/agents/`.
 
 ## Activar las reglas globales en todas las sesiones
 
-Tres reglas aplican en toda sesión de Claude Code, no solo en las del modelo
+Cuatro reglas aplican en toda sesión de Claude Code, no solo en las del modelo
 orquestado:
 
 - `ANTES-DE-EJECUTAR.md`: ante un pedido nuevo, el agente investiga, pregunta
@@ -29,6 +29,8 @@ orquestado:
   sin scrollear) y dónde deja lo que tienes que revisar.
 - `REDACCION-DE-ENTREGABLES.md`: tono neutral, hechos con fuente y sin
   copiar el contexto interno en lo que se comparte.
+- `NOTAS-DE-SESION.md`: las correcciones y decisiones del humano se anotan
+  en un archivo en el momento, para que la compactación no las pierda.
 
 Se importan desde la memoria de usuario. Con el repo clonado en
 `~/Proyectos/claude-meta`, agrega estas líneas a `~/.claude/CLAUDE.md`
@@ -38,6 +40,7 @@ Se importan desde la memoria de usuario. Con el repo clonado en
 @~/Proyectos/claude-meta/plugins/orchestration/ANTES-DE-EJECUTAR.md
 @~/Proyectos/claude-meta/plugins/orchestration/CHECKPOINTS.md
 @~/Proyectos/claude-meta/plugins/orchestration/REDACCION-DE-ENTREGABLES.md
+@~/Proyectos/claude-meta/plugins/orchestration/NOTAS-DE-SESION.md
 ```
 
 ## Usar el modelo orquestado
@@ -134,6 +137,9 @@ plugins/
     ANTES-DE-EJECUTAR.md   ← investigar, preguntar y confirmar antes de ejecutar
     CHECKPOINTS.md         ← forma de los checkpoints y carpeta revision/
     REDACCION-DE-ENTREGABLES.md ← tono y fuentes de lo que se comparte
+    NOTAS-DE-SESION.md     ← notas que sobreviven a la compactación
+    hooks/hooks.json       ← aviso de contexto y notas tras compactar
+    scripts/               ← equilibrio de cuota y hooks de contexto
     kiro/
       ADAPTACION-KIRO.md   ← equivalencias Claude Code → Kiro
       config.json          ← qué se espeja y cómo

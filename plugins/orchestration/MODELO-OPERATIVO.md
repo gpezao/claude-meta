@@ -212,16 +212,25 @@ suma la presión de la ventana de 5 h y el límite de contexto del conductor.
 Usa xhigh solo cuando el humano lo pide para una tarea puntual. Un subagente
 sin `effort` propio corre con el esfuerzo de la sesión.
 
-**Contexto del conductor (decisión 0004).** Cada turno del conductor vuelve a
-leer todo su contexto, así que una sesión larga gasta la ventana de 5 h de
-Claude aunque haga poco. Al pasar de unos **200k tokens** (el statusline lo
-marca con `⚠ nueva sesión`), el conductor cierra lo que tiene en curso,
-escribe un handoff en `handoffs/` con el estado, lo pendiente y las
-decisiones tomadas, y le propone al humano seguir en una sesión nueva que
-arranque leyendo ese handoff. No lo propone a mitad de una etapa de subagente:
-espera su retorno. Para no llegar ahí antes de tiempo, las lecturas largas
-(archivos grandes, barridos, logs) van a `explorer`, no al contexto del
-conductor.
+**Contexto del conductor (decisiones 0004 y 0005).** Cada turno vuelve a
+leer todo el contexto, así que una sesión larga gasta la ventana de 5 h de
+Claude aunque haga poco. Tres mecanismos lo acotan:
+
+- **Notas de sesión** (`NOTAS-DE-SESION.md`): las correcciones, preferencias
+  y decisiones del humano se anotan en un archivo en el momento, para que la
+  compactación no las pierda.
+- **Aviso a 250k.** Un hook del plugin le avisa al conductor. El conductor
+  completa sus notas, termina o delega lo que tiene en curso, no empieza nada
+  grande y le avisa al humano al llegar a un punto de corte. Si ese punto
+  coincide con el fin de una etapa, propone seguir en una sesión nueva que
+  arranque leyendo las notas.
+- **Compactación automática a 300k** (`autoCompactWindow` en
+  `~/.claude/settings.json`). Después de compactar, otro hook le devuelve al
+  conductor sus notas.
+
+El statusline marca el contexto en amarillo desde 200k y en rojo desde 300k.
+Para no llegar antes de tiempo, las lecturas largas (archivos grandes,
+barridos, logs) van a `explorer`, no al contexto del conductor.
 
 **Puente a Codex.** `planner`, `implementer` y `debugger` son subagentes de
 Claude (Haiku 5.5) que arman el encargo y lo ejecutan en Codex con el script

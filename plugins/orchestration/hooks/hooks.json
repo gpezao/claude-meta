@@ -1,0 +1,39 @@
+{
+  "description": "Aviso de contexto y notas de sesión tras compactar (decisión 0005).",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/contexto-hook.mjs\" aviso",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/contexto-hook.mjs\" aviso",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/contexto-hook.mjs\" compactacion",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
