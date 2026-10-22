@@ -4,3 +4,12 @@
 # (ver tools/sync-kiro.mjs)
 plugins/orchestration/kiro/estado.local.json*
 plugins/orchestration/kiro/config.local.json
+
+# Locales de la máquina: los *-meta viven en ../metas y nunca se versionan.
+# Si queda un enlace o una copia aquí, git no la ve.
+/*-meta
+/Claude outputs/
+/presentaciones/
+/.claude/
+/.kiro/
+/.vs/

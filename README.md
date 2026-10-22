@@ -55,10 +55,16 @@ chmod +x new-project-meta.sh
 
 # Crea el directorio de trabajo del proyecto:
 ./new-project-meta.sh <nombre-proyecto>
-# Requiere que ~/Sites/<nombre-proyecto> exista como repo git.
+# Requiere que ~/Proyectos/<nombre-proyecto> exista como repo git.
 # Ajusta la variable SITES si tus repos viven en otro directorio:
 #   SITES=/ruta/a/repos ./new-project-meta.sh <nombre-proyecto>
 ```
+
+El directorio de trabajo (`<META_DIR>`) se crea en `metas/`, junto al repo
+`claude-meta` (variable `META_HOME`). Es local de la máquina: guarda
+decisiones, handoffs y material de clientes, así que nunca va dentro de este
+repo ni a GitHub. El `.gitignore` ignora cualquier `*-meta` que quede en la
+raíz.
 
 ### 2. Completar el norte del proyecto
 

@@ -12,6 +12,9 @@
  * y genera, solo hacia Kiro, el hook de inicio de sesión de la raíz y de cada
  * meta (.kiro/hooks/inicio-de-sesion.json).
  *
+ * Los *-meta viven fuera del repo, en ../metas junto a él (o en CLAUDE_META_HOME):
+ * son locales de la máquina y nunca se versionan.
+ *
  * Lo que viaja es el contenido compartido de cada par: el cuerpo y, según el
  * tipo, la descripción, las herramientas del agente o si la memoria está
  * fijada. Cada lado conserva el resto de su encabezado. La huella de lo último
@@ -43,6 +46,7 @@ import { fileURLToPath } from 'node:url';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(AQUI, '..');
+const METAS = process.env.CLAUDE_META_HOME || path.resolve(RAIZ, '..', 'metas');
 const HOME = os.homedir();
 const KIRO = process.env.KIRO_HOME || path.join(HOME, '.kiro');
 const CLAUDE = process.env.CLAUDE_CONFIG_DIR || path.join(HOME, '.claude');
@@ -271,9 +275,15 @@ function agregarMemoriaDeProyecto(meta, slug) {
 
 // ── pares ──────────────────────────────────────────────────────────────────
 
+function aMetas(p) {
+  const rel = path.relative(RAIZ, p);
+  const seg = rel.split(path.sep)[0];
+  return !rel.startsWith('..') && !path.isAbsolute(rel) && seg.endsWith('-meta') ? path.join(METAS, rel) : p;
+}
+
 function metas() {
-  return entradas(RAIZ, (d) => d.isDirectory() && d.name.endsWith('-meta'))
-    .filter((m) => existe(path.join(RAIZ, m, '.claude')) || existe(path.join(RAIZ, m, '.kiro')));
+  return entradas(METAS, (d) => d.isDirectory() && d.name.endsWith('-meta'))
+    .filter((m) => existe(path.join(METAS, m, '.claude')) || existe(path.join(METAS, m, '.kiro')));
 }
 
 function descubrirPares() {
@@ -303,7 +313,7 @@ function descubrirPares() {
   }
 
   for (const m of metas()) {
-    const base = path.join(RAIZ, m);
+    const base = path.join(METAS, m);
     agregar({ id: `proyecto:${m}`, tipo: 'proyecto',
       claude: path.join(base, '.claude', 'CLAUDE.md'), kiro: path.join(base, '.kiro', 'steering', 'proyecto.md') });
     const sC = path.join(base, '.claude', 'skills');
@@ -314,19 +324,20 @@ function descubrirPares() {
   }
 
   // Memorias: primero los pares ya conocidos, para que no cambien de lugar.
+  // Un par guardado cuando los meta vivían dentro del repo se rebasa a METAS.
   for (const [id, e] of Object.entries(EST.pares)) {
-    if (id.startsWith('memoria:')) agregar({ id, tipo: 'memoria', slug: id.slice(8), claude: e.claude, kiro: e.kiro });
+    if (id.startsWith('memoria:')) agregar({ id, tipo: 'memoria', slug: id.slice(8), claude: e.claude, kiro: aMetas(e.kiro) });
   }
   for (const slug of mds(MEMORIAS).filter((s) => s !== 'MEMORY')) {
     const meta = metaDeMemoria(slug);
-    const dir = meta ? path.join(RAIZ, meta, '.kiro', 'steering') : path.join(KIRO, 'steering');
+    const dir = meta ? path.join(METAS, meta, '.kiro', 'steering') : path.join(KIRO, 'steering');
     agregar({ id: `memoria:${slug}`, tipo: 'memoria', slug,
       claude: path.join(MEMORIAS, `${slug}.md`), kiro: path.join(dir, `memoria-${slug}.md`) });
   }
   // Steering nuevo creado en Kiro: pasa a Claude Code como memoria.
   const reservados = new Set(['agents.md', 'proyecto.md', ...CONF.reglas.map((r) => r.kiro.toLowerCase())]);
   const dirsSteering = [[null, path.join(KIRO, 'steering')],
-    ...metas().map((m) => [m, path.join(RAIZ, m, '.kiro', 'steering')])];
+    ...metas().map((m) => [m, path.join(METAS, m, '.kiro', 'steering')])];
   for (const [meta, dir] of dirsSteering) {
     for (const f of mds(dir)) {
       const kp = path.join(dir, `${f}.md`);
@@ -487,7 +498,7 @@ function comandosDeInicio(dir) {
 }
 
 function generarHooks() {
-  for (const dir of [RAIZ, ...metas().map((m) => path.join(RAIZ, m))]) {
+  for (const dir of [RAIZ, ...metas().map((m) => path.join(METAS, m))]) {
     const comandos = [`node "${SCRIPT}" --hook`, ...comandosDeInicio(dir)];
     const prompt = [
       'Inicio de sesión. Antes de atender el primer pedido, corre en la raíz del workspace:',

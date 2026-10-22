@@ -5,7 +5,8 @@
 #
 # Variables de entorno (opcionales):
 #   META_HOME — directorio raíz para los meta de proyectos
-#               (default: directorio padre del script; ~/Sites/meta si clonaste ahí)
+#               (default: metas/, junto al repo claude-meta). Los meta son
+#               locales de la máquina: nunca van dentro del repo ni a GitHub.
 #   SITES     — directorio raíz de repos de código
 #               (default: ~/Proyectos)
 set -euo pipefail
@@ -18,7 +19,8 @@ fi
 
 SITES="${SITES:-$HOME/Proyectos}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-META_HOME="${META_HOME:-$(dirname "$SCRIPT_DIR")}"
+REPO_META="$(dirname "$SCRIPT_DIR")"
+META_HOME="${META_HOME:-$(dirname "$REPO_META")/metas}"
 CODIGO="${SITES}/${PROY}"
 META="${META_HOME}/${PROY}-meta"
 
@@ -49,8 +51,9 @@ repo).
 - **META_DIR** (este directorio): \`${META}\`
 - **RUTA_CODIGO** (el repo que se modifica): \`${CODIGO}\`
 
-El proceso compartido está en \`MODELO-OPERATIVO.md\`. Si no lo tienes en
-este directorio, puedes leerlo desde:
+El proceso compartido está en
+\`${REPO_META}/plugins/orchestration/MODELO-OPERATIVO.md\`. Si no está ahí,
+puedes leerlo desde:
 https://raw.githubusercontent.com/gpezao/claude-meta/main/plugins/orchestration/MODELO-OPERATIVO.md
 
 ## Tu rol: orquestador-conductor
@@ -136,6 +139,18 @@ cat > "$META/.claude/settings.json" <<'EOF'
 }
 EOF
 
+# settings.local.json: el meta usa las memorias del repo claude-meta, que
+# Claude Code guarda con la ruta del repo como clave (las mismas que lee
+# sync-kiro.mjs).
+CONF_CLAUDE="${CLAUDE_CONFIG_DIR:-~/.claude}"
+RAIZ_NATIVA="$(cygpath -w "$REPO_META" 2>/dev/null || printf '%s' "$REPO_META")"
+CLAVE="$(printf '%s' "$RAIZ_NATIVA" | sed 's/[^A-Za-z0-9]/-/g')"
+cat > "$META/.claude/settings.local.json" <<EOF
+{
+  "autoMemoryDirectory": "${CLAUDE_MEMORY_DIR:-${CONF_CLAUDE}/projects/${CLAVE}/memory}"
+}
+EOF
+
 # .gitignore: si se versiona el directorio meta, no versionar allows locales
 # ni artefactos de handoff transitorios, ni el material que se deja al humano
 # para revisar (ver CHECKPOINTS.md).
@@ -160,7 +175,7 @@ touch "$META/decisions/.gitkeep" "$META/handoffs/.gitkeep" "$META/retrospectives
 
 # Espejo con Kiro: genera el .kiro/ del proyecto nuevo (steering y hook de
 # inicio). Solo encuentra los meta que cuelgan de este repo.
-if command -v node >/dev/null 2>&1 && [[ "$META_HOME" == "$(dirname "$SCRIPT_DIR")" ]]; then
+if command -v node >/dev/null 2>&1 && [[ "$META_HOME" == "$(dirname "$REPO_META")/metas" ]]; then
   node "$SCRIPT_DIR/sync-kiro.mjs" >/dev/null \
     || echo "Advertencia: falló el espejo con Kiro; córrelo a mano: node $SCRIPT_DIR/sync-kiro.mjs" >&2
 fi
