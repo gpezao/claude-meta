@@ -53,7 +53,7 @@ export const ROLES = {
   implementer: {
     base: "codex", flexible: true,
     codex: "agente implementer (puente a GPT-6.1-Sol · high)",
-    claude: "agente implementer con `MODO: directo` y model sonnet (Sonnet 5.5 · high)",
+    claude: "agente implementer con `MODO: directo` y model sonnet (Sonnet 5 · high), u opus si el PR es complejo",
   },
   debugger: {
     base: "codex", flexible: true,

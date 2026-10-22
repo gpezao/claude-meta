@@ -272,7 +272,13 @@ script lee el uso que el statusline deja en `~/.claude/cache/`. Las reglas:
   agente con `MODO: directo` en la primera línea del prompt y el `model` de la
   alternativa: `opus` para `planner` y `debugger`, `sonnet` para
   `implementer`. En Claude Code 2.1.283, el alias `sonnet` apunta a Sonnet 5,
-  no a 5.5. Lo mismo vale si un puente responde `CODEX_NO_DISPONIBLE`: el
+  no a 5.5. El `model` se pasa siempre: sin él, el agente corre con el Haiku
+  del puente. **Implementer en `opus` (decisión 0004):** el conductor puede
+  usarlo cuando juzga que el PR es complejo (lógica entrelazada en varios
+  archivos, estado compartido o concurrencia, o un intento en `sonnet` que no
+  pasó la revisión). Gasta más cuota de Claude que `sonnet`, así que lo dice en
+  su reporte con el motivo, y no lo usa con presión de 5 h en Claude salvo
+  que el humano lo pida. Lo mismo vale si un puente responde `CODEX_NO_DISPONIBLE`: el
   trabajo vuelve a Claude aunque esté sobre el tope de 5 h, porque no hay
   alternativa. Si Claude está agotado, el conductor para y le avisa al humano.
 - **Explorer en Codex.** `MODO: codex` en la primera línea del prompt. Si
