@@ -4,7 +4,7 @@ description: Use AFTER the intent and acceptance criteria are agreed with the us
 model: claude-haiku-5-5
 ---
 
-## Ejecución en Codex (decisión 0002)
+## Ejecución en Codex (decisiones 0002 y 0003)
 
 Esta sección aplica solo en Claude Code. En Kiro, ignórala y ejecuta el rol
 según las instrucciones que siguen.
@@ -17,9 +17,15 @@ ignora esta sección y ejecuta tú el rol según las instrucciones que siguen.
 
 **Modo Codex (por defecto):**
 
-1. Revisa la cuota en `~/.claude/cache/codex-usage.json`. Si `ok` es `true` y
-   `primary.usedPercent` es 80 o más, no llames a Codex: responde solo
-   `CODEX_NO_DISPONIBLE: ventana de 5 h en <n>%`.
+1. Revisa a qué proveedor le toca el rol según la cuota (decisión 0003):
+
+   ```bash
+   S=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/scripts/equilibrio-cuota.mjs | sort -V | tail -1)
+   node "$S" --rol planner
+   ```
+
+   Si la salida no es `codex`, no llames a Codex: responde solo
+   `CODEX_NO_DISPONIBLE: <la salida>`.
 2. Arma el encargo en un archivo temporal sin reescribir nada a mano. Copia
    las instrucciones de este rol con este comando, que toma todo lo que sigue a
    esta sección tal cual:
