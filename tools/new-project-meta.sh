@@ -158,6 +158,13 @@ EOF
 
 touch "$META/decisions/.gitkeep" "$META/handoffs/.gitkeep" "$META/retrospectives/.gitkeep"
 
+# Espejo con Kiro: genera el .kiro/ del proyecto nuevo (steering y hook de
+# inicio). Solo encuentra los meta que cuelgan de este repo.
+if command -v node >/dev/null 2>&1 && [[ "$META_HOME" == "$(dirname "$SCRIPT_DIR")" ]]; then
+  node "$SCRIPT_DIR/sync-kiro.mjs" >/dev/null \
+    || echo "Advertencia: falló el espejo con Kiro; córrelo a mano: node $SCRIPT_DIR/sync-kiro.mjs" >&2
+fi
+
 echo "Creado: $META"
 echo "  RUTA_CODIGO = $CODIGO"
-echo "Siguiente: completa $META/VISION.md, luego:  cd $META && claude"
+echo "Siguiente: completa $META/VISION.md, luego:  cd $META && claude  (o abre $META en Kiro)"

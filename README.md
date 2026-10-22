@@ -74,6 +74,45 @@ claude
 Y pega el primer prompt de
 [SESSION-START.md](plugins/orchestration/SESSION-START.md).
 
+## Usar el modelo en Kiro
+
+Las reglas, los subagentes, las memorias de Claude Code y la configuración
+de cada `*-meta` se espejan en Kiro con `tools/sync-kiro.mjs`. El espejo
+funciona en los dos sentidos: lo que cambia en Claude Code pasa a Kiro, y lo
+que cambia en Kiro vuelve a este repo.
+
+| En claude-meta (Claude Code) | En Kiro |
+|---|---|
+| Reglas de `plugins/orchestration/` | `~/.kiro/steering/` |
+| `plugins/orchestration/agents/` | `~/.kiro/agents/` |
+| Memorias de Claude Code de este repo | `~/.kiro/steering/memoria-*.md`, o en el meta si son de un proyecto |
+| `<meta>/.claude/CLAUDE.md` | `<meta>/.kiro/steering/proyecto.md` |
+| `<meta>/.claude/skills/` | `<meta>/.kiro/skills/` |
+| Hooks `SessionStart` de `<meta>/.claude/settings.json` | `<meta>/.kiro/hooks/inicio-de-sesion.json` (generado) |
+
+Lo que Kiro hace distinto (sin `AskUserQuestion`, subagentes por nombre,
+MCP propio) está en `plugins/orchestration/kiro/ADAPTACION-KIRO.md`, que
+también llega a Kiro como steering.
+
+- **Cuándo corre:** al abrir sesión, en las dos herramientas. En Claude Code,
+  por un hook `SessionStart` en `~/.claude/settings.json`. En Kiro, por el
+  hook de inicio de cada meta. También a mano: `node tools/sync-kiro.mjs`
+  (`--simular` para ver sin escribir).
+- **Conflictos:** si el mismo archivo cambió en los dos lados, no se toca y
+  se reporta. Se resuelve con `--gana claude <par>` o `--gana kiro <par>`.
+- **Archivos nuevos y borrados:** lo nuevo de un lado se crea en el otro. Lo
+  borrado se reporta y el par queda desvinculado; el otro lado no se borra.
+  `--revincular <par>` lo vuelve a espejar.
+- **Configuración:** `plugins/orchestration/kiro/config.json` define las
+  reglas espejadas y las herramientas de los agentes en Kiro. Qué memorias son
+  de un proyecto vive en `config.local.json`, y el estado del espejo en
+  `estado.local.json`. Ninguno de los dos se versiona.
+- **MCP:** Kiro lee Jira por el servidor remoto de Atlassian
+  (`~/.kiro/settings/mcp.json`). No tiene conector de Drive; lo que depende de
+  Drive se hace desde Claude Code.
+
+Para trabajar en un proyecto, abre su `*-meta` como workspace en Kiro.
+
 ## Estructura del repo
 
 ```
@@ -95,9 +134,13 @@ plugins/
     ANTES-DE-EJECUTAR.md   ← investigar, preguntar y confirmar antes de ejecutar
     CHECKPOINTS.md         ← forma de los checkpoints y carpeta revision/
     REDACCION-DE-ENTREGABLES.md ← tono y fuentes de lo que se comparte
+    kiro/
+      ADAPTACION-KIRO.md   ← equivalencias Claude Code → Kiro
+      config.json          ← qué se espeja y cómo
     README.md
 tools/
   new-project-meta.sh      ← genera el directorio de trabajo de un proyecto
+  sync-kiro.mjs            ← espejo bidireccional Claude Code ⇄ Kiro
 ```
 
 ## El modelo en una frase

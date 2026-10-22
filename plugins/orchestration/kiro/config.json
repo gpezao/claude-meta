@@ -1,0 +1,44 @@
+{
+  "reglas": [
+    {
+      "claude": "plugins/orchestration/ANTES-DE-EJECUTAR.md",
+      "kiro": "antes-de-ejecutar.md",
+      "inclusion": "always"
+    },
+    {
+      "claude": "plugins/orchestration/CHECKPOINTS.md",
+      "kiro": "checkpoints.md",
+      "inclusion": "always"
+    },
+    {
+      "claude": "plugins/orchestration/REDACCION-DE-ENTREGABLES.md",
+      "kiro": "redaccion-de-entregables.md",
+      "inclusion": "always"
+    },
+    {
+      "claude": "plugins/orchestration/kiro/ADAPTACION-KIRO.md",
+      "kiro": "adaptacion-kiro.md",
+      "inclusion": "always"
+    },
+    {
+      "claude": "plugins/orchestration/MODELO-OPERATIVO.md",
+      "kiro": "modelo-operativo.md",
+      "inclusion": "auto",
+      "name": "modelo-operativo",
+      "description": "Proceso del modelo orquestado: rol de conductor, intake con grill, pipeline de subagentes (planner, implementer, tester, reviewer, security-reviewer, release, explorer, debugger), estado anclado a git y red de seguridad."
+    }
+  ],
+  "agentes": {
+    "dir": "plugins/orchestration/agents",
+    "tools": [
+      "read",
+      "write",
+      "shell",
+      "web",
+      "todo_list",
+      "@mcp"
+    ],
+    "includeMcpJson": true,
+    "porAgente": {}
+  }
+}

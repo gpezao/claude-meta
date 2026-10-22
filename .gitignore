@@ -1,1 +1,6 @@
 .DS_Store
+
+# Espejo con Kiro: estado y memorias por proyecto, locales de la máquina
+# (ver tools/sync-kiro.mjs)
+plugins/orchestration/kiro/estado.local.json*
+plugins/orchestration/kiro/config.local.json
