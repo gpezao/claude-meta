@@ -226,7 +226,11 @@ conductor.
 **Puente a Codex.** `planner`, `implementer` y `debugger` son subagentes de
 Claude (Haiku 5.5) que arman el encargo y lo ejecutan en Codex con el script
 del plugin `codex`. Devuelven la salida de Codex tal cual. `explorer` hace lo
-mismo con GPT-6-Luna solo si el prompt empieza con `MODO: codex`.
+mismo con GPT-6-Luna solo si el prompt empieza con `MODO: codex`. El plugin
+`codex` a veces deja un trabajo en `queued` sin arrancar, en el repo principal
+o en un worktree por igual. Por eso cada puente comprueba a los 90 s que el
+trabajo arrancó y, si no, lo relanza una vez antes de responder
+`CODEX_NO_DISPONIBLE`. Los worktrees usan el puente como cualquier repo.
 
 **Equilibrio de cuota (decisión 0003).** Esta parte aplica solo en Claude
 Code; en Kiro no hay Codex. Antes de delegar un rol, el conductor corre:

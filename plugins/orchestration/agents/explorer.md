@@ -50,12 +50,21 @@ trabajo del rol:
    ```
 
    La salida trae el id del trabajo (`task-...`).
-4. Espera a que termine. Repite esta llamada, con un timeout de Bash de
+4. Comprueba que arrancó. Con un timeout de Bash de 150000 ms:
+   `node "$C" status <id> --wait --timeout-ms 90000 --cwd "<repo>"`
+   Si después de eso el trabajo sigue en `queued`, no arrancó: el plugin a
+   veces pierde el proceso que lo ejecuta, sin dejar error. Lánzalo de nuevo
+   una sola vez con el comando del paso 3 y el mismo archivo, y repite esta
+   comprobación con el id nuevo. Si el segundo también sigue en `queued`,
+   responde `CODEX_NO_DISPONIBLE: Codex no arrancó dos veces (<id1>, <id2>)`.
+   No intentes cancelar el trabajo colgado: su proceso ya no existe y
+   `cancel` falla desde Git Bash.
+5. Espera a que termine. Repite esta llamada, con un timeout de Bash de
    600000 ms, hasta que el trabajo ya no esté en curso:
    `node "$C" status <id> --wait --timeout-ms 540000 --cwd "<repo>"`
-5. Devuelve tal cual la salida de `node "$C" result <id> --cwd "<repo>"`, sin
+6. Devuelve tal cual la salida de `node "$C" result <id> --cwd "<repo>"`, sin
    resumirla ni agregar análisis propio.
-6. Si Codex no está instalado, falla o el trabajo termina con error, responde
+7. Si Codex no está instalado, falla o el trabajo termina con error, responde
    `CODEX_NO_DISPONIBLE: <motivo>`.
 
 El sandbox de Codex en Windows no lee carpetas dentro de `AppData`: el repo
