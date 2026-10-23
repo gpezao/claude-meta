@@ -1,0 +1,2 @@
+# Los scripts de bash de los evals corren en Linux o WSL: siempre LF.
+plugins/orchestration/evals/**/*.sh text eol=lf

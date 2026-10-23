@@ -13,3 +13,6 @@ plugins/orchestration/kiro/config.local.json
 /.claude/
 /.kiro/
 /.vs/
+
+# Resultados de claude plugin eval
+plugins/orchestration/evals/results/
