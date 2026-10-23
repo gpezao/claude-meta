@@ -144,8 +144,12 @@ plugins/
     CHECKPOINTS.md         ← forma de los checkpoints y carpeta revision/
     REDACCION-DE-ENTREGABLES.md ← tono y fuentes de lo que se comparte
     NOTAS-DE-SESION.md     ← notas que sobreviven a la compactación
-    hooks/hooks.json       ← aviso de contexto y notas tras compactar
-    scripts/               ← equilibrio de cuota y hooks de contexto
+    hooks/hooks.json       ← aviso de contexto, notas tras compactar y equilibrio al delegar
+    scripts/               ← equilibrio de cuota y sus hooks
+    skills/
+      cuota/               ← modelo y proveedor por rol, equilibrio, puente a Codex
+      cierre-de-card/      ← tester, reviewer, release y retro
+    evals/                 ← casos de claude plugin eval (ver su README)
     kiro/
       ADAPTACION-KIRO.md   ← equivalencias Claude Code → Kiro
       config.json          ← qué se espeja y cómo

@@ -37,6 +37,20 @@ autoridad total dirige subagentes especializados en contextos aislados.
   carga en toda sesión desde `~/.claude/CLAUDE.md`.
 - `hooks/hooks.json` — avisa al agente desde 250k tokens de contexto y le
   devuelve sus notas después de compactar (`scripts/contexto-hook.mjs`).
+  Antes de cada delegación de `planner`, `implementer`, `debugger` o
+  `explorer`, comprueba que la invocación coincide con el equilibrio de cuota
+  (`scripts/equilibrio-hook.mjs`).
+
+**Skills** (se cargan cuando hacen falta):
+
+- `cuota` — modelo, esfuerzo y proveedor (Claude o Codex) de cada rol, el
+  equilibrio de cuota y el puente a Codex.
+- `cierre-de-card` — tester, reviewer, release con el ok del humano, retro de
+  cinco líneas y restricciones de plataforma.
+
+**Evals:** `evals/` tiene casos para `claude plugin eval` que comprueban las
+reglas, los agentes y las skills. Cómo correrlos y cuánto cuestan, en
+`evals/README.md`.
 
 ## Cómo funciona
 
