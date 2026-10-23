@@ -146,6 +146,7 @@ export function compactacion(entrada) {
 
 async function main(modo) {
   let crudo = "";
+  process.stdin.setEncoding("utf8");
   for await (const parte of process.stdin) crudo += parte;
   const entrada = JSON.parse(crudo || "{}");
   const evento = entrada.hook_event_name;
