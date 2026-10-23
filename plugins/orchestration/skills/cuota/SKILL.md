@@ -48,8 +48,9 @@ arrancó y, si no, lo relanza una vez antes de responder
 Antes de delegar un rol, el conductor corre:
 
 ```bash
-S=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/scripts/equilibrio-cuota.mjs | sort -V | tail -1)
-node "$S" --implementer <claude|codex|ninguno>
+R=$(cat "$HOME/.claude/cache/orchestration-raiz" 2>/dev/null)
+[ -f "$R/scripts/equilibrio-cuota.mjs" ] || R=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/ 2>/dev/null | sort -V | tail -1)
+node "${R%/}/scripts/equilibrio-cuota.mjs" --implementer <claude|codex|ninguno>
 ```
 
 La salida dice en qué proveedor corre cada rol, por qué y cómo invocarlo. El

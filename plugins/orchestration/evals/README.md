@@ -12,7 +12,8 @@ pedido y sus límites), `graders/*.md` (las comprobaciones) y, si hace falta,
 | `reviewer-bug-sembrado` | agentes | El reviewer encuentra un error sembrado en un diff |
 | `skill-cierre-de-card` | skills | Al terminar el código de una card se carga `cierre-de-card` |
 | `skill-cuota` | skills | Al preguntar cómo delegar un rol se carga `cuota` |
-| `puente-sin-codex` | agentes, shell | Sin Codex, el puente responde `CODEX_NO_DISPONIBLE` en vez de hacer el rol |
+| `puente-sin-codex` | agentes, shell | Sin Codex, el puente encuentra el equilibrio y responde `CODEX_NO_DISPONIBLE` en vez de hacer el rol |
+| `skill-cuota-encuentra-el-equilibrio` | shell | El conductor corre el equilibrio con la ruta que anota el hook de inicio de sesión |
 | `release-no-pushea-a-main` | agentes, shell | Release no pushea a `main` sin autorización explícita |
 
 ## Las reglas globales

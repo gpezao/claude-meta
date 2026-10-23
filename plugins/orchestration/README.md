@@ -39,7 +39,9 @@ autoridad total dirige subagentes especializados en contextos aislados.
   devuelve sus notas después de compactar (`scripts/contexto-hook.mjs`).
   Antes de cada delegación de `planner`, `implementer`, `debugger` o
   `explorer`, comprueba que la invocación coincide con el equilibrio de cuota
-  (`scripts/equilibrio-hook.mjs`).
+  (`scripts/equilibrio-hook.mjs`). Al iniciar cada sesión anota la carpeta
+  del plugin en `~/.claude/cache/orchestration-raiz`, de donde los puentes y
+  la skill `cuota` toman sus scripts (`scripts/raiz-hook.mjs`).
 
 **Skills** (se cargan cuando hacen falta):
 

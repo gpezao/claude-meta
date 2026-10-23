@@ -20,12 +20,14 @@ ignora esta sección y ejecuta tú el rol según las instrucciones que siguen.
 1. Revisa a qué proveedor le toca el rol según la cuota (decisión 0003):
 
    ```bash
-   S=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/scripts/equilibrio-cuota.mjs | sort -V | tail -1)
-   node "$S" --rol debugger
+   R=$(cat "$HOME/.claude/cache/orchestration-raiz" 2>/dev/null)
+   [ -f "$R/scripts/equilibrio-cuota.mjs" ] || R=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/ 2>/dev/null | sort -V | tail -1)
+   node "${R%/}/scripts/equilibrio-cuota.mjs" --rol debugger
    ```
 
-   Si `S` queda vacío, el comando falla o la salida no es `codex`, no llames
-   a Codex ni hagas el rol tú: responde solo
+   `R` es la carpeta del plugin: la anota un hook al iniciar la sesión y, si
+   falta, sale del cache del marketplace. Si no hay script, el comando falla o
+   la salida no es `codex`, no llames a Codex ni hagas el rol tú: responde solo
    `CODEX_NO_DISPONIBLE: <la salida o el error>`. En modo Codex, ante
    cualquier problema la respuesta es esa línea, nunca el trabajo del rol.
 2. Arma el encargo en un archivo temporal sin reescribir nada a mano. Copia
@@ -33,7 +35,9 @@ ignora esta sección y ejecuta tú el rol según las instrucciones que siguen.
    esta sección tal cual:
 
    ```bash
-   A=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/agents/debugger.md | sort -V | tail -1)
+   R=$(cat "$HOME/.claude/cache/orchestration-raiz" 2>/dev/null)
+   [ -f "$R/scripts/equilibrio-cuota.mjs" ] || R=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/ 2>/dev/null | sort -V | tail -1)
+   A="${R%/}/agents/debugger.md"
    P=$(cygpath -w "$(mktemp)")
    awk 'f; s && /^---\r?$/ {f=1} /^## Ejecución en Codex/ {s=1}' "$A" > "$P"
    ```

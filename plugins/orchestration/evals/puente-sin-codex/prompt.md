@@ -1,5 +1,5 @@
 ---
-description: Sin Codex ni equilibrio disponibles, el puente del planner responde CODEX_NO_DISPONIBLE en vez de hacer el rol por su cuenta.
+description: Sin Codex, el puente del planner encuentra el equilibrio, responde CODEX_NO_DISPONIBLE y no hace el rol por su cuenta.
 expected_outcome: El agente planner, invocado sin MODO directo, devuelve una línea CODEX_NO_DISPONIBLE y el conductor la informa o reintenta con MODO directo y RUTA forzada.
 tags: [agentes, shell]
 plugins: ["../.."]
