@@ -24,8 +24,10 @@ trabajo del rol:
    node "$S" --rol explorer
    ```
 
-   Si la salida no es `codex`, no llames a Codex: responde solo
-   `CODEX_NO_DISPONIBLE: <la salida>`.
+   Si `S` queda vacío, el comando falla o la salida no es `codex`, no llames
+   a Codex ni hagas el rol tú: responde solo
+   `CODEX_NO_DISPONIBLE: <la salida o el error>`. En modo Codex, ante
+   cualquier problema la respuesta es esa línea, nunca el trabajo del rol.
 2. Arma el encargo en un archivo temporal sin reescribir nada a mano. Copia
    las instrucciones de este rol con este comando, que toma todo lo que sigue a
    esta sección tal cual:

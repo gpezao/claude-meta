@@ -61,6 +61,13 @@ Los casos con la etiqueta `shell` conceden Bash, que exige el sandbox del
 sistema operativo. Windows nativo no lo tiene: esos casos corren en Linux, en
 macOS o en WSL2 con Claude Code instalado del lado Linux (más `bubblewrap` y
 `socat`). En Windows nativo terminan con error de corrida. `--scaffold`
-ejecuta el `repo.sh` del caso de release, que arma un repo de prueba.
+ejecuta el `repo.sh` del caso de release, que arma un repo de prueba. En WSL
+se corren desde Ubuntu sobre la ruta `/mnt/c/...` del repo; `command -v
+claude` tiene que dar el binario de Linux, no el de Windows.
 
-Los resultados quedan en `evals/results/`, que no se versiona.
+Los resultados quedan en `evals/results/`, que no se versiona. Los traces de
+cada corrida se borran al terminar; `--keep-temp` los conserva para revisar por
+qué falló un grader. En WSL quedan en el `/tmp` de Ubuntu, que se vacía cuando
+la distro se detiene: hay que leerlos en la misma sesión. El
+`aggregate-result.json` de `results/` trae igual el trace en la evidencia de
+los graders `llm`.
