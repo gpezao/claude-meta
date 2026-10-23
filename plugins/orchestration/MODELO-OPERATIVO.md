@@ -185,36 +185,28 @@ El tamaño del trabajo decide cuántas etapas se usan: un cambio de dos
 líneas no necesita `planner` ni `implementer`; una feature multi-archivo
 las usa todas.
 
-### Modelo, esfuerzo y cuota por rol (decisiones 0002, 0003 y 0004)
+### Modelo y proveedor por rol (skill `cuota`)
 
-Cada rol corre con el modelo y el esfuerzo de la decisión 0002
-(`claude-meta-meta/decisions/0002-modelo-y-esfuerzo-por-rol.md`), elegidos
-por calidad medida en una prueba propia y por consumo de cuota. La decisión
-0003 (`claude-meta-meta/decisions/0003-equilibrio-de-cuota-entre-proveedores.md`)
-agrega cuándo un rol pasa a su alternativa para que las cuotas de Claude y de
-Codex se gasten al mismo ritmo. La decisión 0004
-(`claude-meta-meta/decisions/0004-ventana-de-5-h-y-contexto-del-conductor.md`)
-suma la presión de la ventana de 5 h y el límite de contexto del conductor.
+Cada rol corre con un modelo, un esfuerzo y un proveedor (Claude o Codex)
+fijados por las decisiones 0002, 0003 y 0004. `planner`, `implementer` y
+`debugger` corren en Codex a través de un puente; `tester` y `release`
+están fijos en Claude; la revisión corre en un proveedor distinto al del
+implementer. El equilibrio de cuota mueve los roles flexibles de un
+proveedor al otro para que las dos cuotas se gasten al mismo ritmo.
 
-| Rol | Base | Alternativa (desvío o cuota) |
-|---|---|---|
-| `explorer` | Claude Haiku 5.5 · medium | Codex GPT-6-Luna · medium (`MODO: codex`) |
-| `planner` | Codex GPT-6.1-Sol · high (puente) | Claude Opus 5.5 · high |
-| `implementer` | Codex GPT-6.1-Sol · high (puente) | Claude Sonnet 5.5 · high |
-| `tester` | Claude Sonnet 5.5 · high | — |
-| `reviewer` | Claude Opus 5.5 · high | Codex GPT-6.1-Sol · high |
-| `security-reviewer` | Claude Opus 5.5 · high | Codex GPT-6.1-Sol · high |
-| `debugger` | Codex GPT-6.1-Sol · high (puente) | Claude Opus 5.5 · high |
-| `release` | Claude Haiku 5.5 · medium | — |
-| redacción | El conductor, o `general-purpose` con `model: "opus"` | — |
+Antes de delegar, el conductor carga la skill **`cuota`**
+(`skills/cuota/SKILL.md`). Ahí están la tabla de modelos, las reglas del
+equilibrio, el puente a Codex y cómo se invoca cada alternativa. Un hook
+`PreToolUse` del plugin rechaza las delegaciones de `planner`,
+`implementer`, `debugger` y `explorer` que no coinciden con el equilibrio, y
+el motivo dice cómo invocarlas. El hook falla abierto: ante un error no
+detiene nada. Se salta con una línea `RUTA: forzada <motivo>` en el prompt,
+debajo de la línea `MODO` si la hay.
 
-**El conductor** trabaja con Opus 5.5 en high (`~/.claude/settings.json`).
-Usa xhigh solo cuando el humano lo pide para una tarea puntual. Un subagente
-sin `effort` propio corre con el esfuerzo de la sesión.
+### Contexto del conductor (decisiones 0004 y 0005)
 
-**Contexto del conductor (decisiones 0004 y 0005).** Cada turno vuelve a
-leer todo el contexto, así que una sesión larga gasta la ventana de 5 h de
-Claude aunque haga poco. Tres mecanismos lo acotan:
+Cada turno vuelve a leer todo el contexto, así que una sesión larga gasta la
+ventana de 5 h de Claude aunque haga poco. Tres mecanismos lo acotan:
 
 - **Notas de sesión** (`NOTAS-DE-SESION.md`): las correcciones, preferencias
   y decisiones del humano se anotan en un archivo en el momento, para que la
@@ -232,90 +224,32 @@ El statusline marca el contexto en amarillo desde 200k y en rojo desde 300k.
 Para no llegar antes de tiempo, las lecturas largas (archivos grandes,
 barridos, logs) van a `explorer`, no al contexto del conductor.
 
-**Puente a Codex.** `planner`, `implementer` y `debugger` son subagentes de
-Claude (Haiku 5.5) que arman el encargo y lo ejecutan en Codex con el script
-del plugin `codex`. Devuelven la salida de Codex tal cual. `explorer` hace lo
-mismo con GPT-6-Luna solo si el prompt empieza con `MODO: codex`. El plugin
-`codex` a veces deja un trabajo en `queued` sin arrancar, en el repo principal
-o en un worktree por igual. Por eso cada puente comprueba a los 90 s que el
-trabajo arrancó y, si no, lo relanza una vez antes de responder
-`CODEX_NO_DISPONIBLE`. Los worktrees usan el puente como cualquier repo.
+### Worktrees
 
-**Equilibrio de cuota (decisión 0003).** Esta parte aplica solo en Claude
-Code; en Kiro no hay Codex. Antes de delegar un rol, el conductor corre:
+Cuando dos cards corren en paralelo sobre el mismo repo, cada una trabaja
+en su propio worktree, para que una no pise el árbol de trabajo de la otra.
+Con una sola card en curso, el trabajo va en una rama del repo principal.
+
+El conductor crea el worktree y les pasa esa ruta a los agentes como la
+ruta del repo de la card:
 
 ```bash
-S=$(ls -d "$HOME"/.claude/plugins/cache/gpezao/orchestration/*/scripts/equilibrio-cuota.mjs | sort -V | tail -1)
-node "$S" --implementer <claude|codex|ninguno>
+git -C RUTA_CODIGO worktree add ../<repo>-<card> -b <rama>
 ```
 
-La salida dice en qué proveedor corre cada rol, por qué y cómo invocarlo. El
-script lee el uso que el statusline deja en `~/.claude/cache/`. Las reglas:
+No se usa `isolation: "worktree"` de la herramienta `Agent`: crea el
+worktree del repo donde corre la sesión, y el conductor corre en el
+`*-meta`, que no es un repo. Además, los puentes le pasan a Codex la ruta
+que les da el conductor, no su propio directorio. Al cerrar la card:
+`git -C RUTA_CODIGO worktree remove ../<repo>-<card>`.
 
-- **Ritmo** = % usado de la semana ÷ % transcurrido de la semana, con un
-  mínimo de 25% transcurrido (unas 42 h), para que el uso de las primeras
-  horas tras un reinicio no infle el ritmo. 1,0 es gastar la cuota justo
-  cuando se reinicia. Se compara el ritmo y no el porcentaje porque las semanas de
-  Claude y de Codex se reinician en días distintos.
-- **Desvío.** Si el ritmo de un proveedor supera al del otro en más de 0,25,
-  sus roles flexibles (`explorer`, `planner`, `implementer`, `debugger`)
-  pasan a la alternativa. Vuelven a la base cuando la diferencia baja de
-  0,10.
-- **Presión de 5 h (decisión 0004).** Si un proveedor tiene la ventana de
-  5 h en 60% o más y el otro está bajo 60%, los roles flexibles del primero
-  pasan al otro, aunque el ritmo semanal diga lo contrario. Es la ventana que
-  corta el trabajo en el día.
-- **Revisión cruzada.** `reviewer` y `security-reviewer` corren siempre en un
-  proveedor distinto al del implementer de la card, por encima del ritmo y del
-  tope de 5 h; solo cede si ese proveedor está agotado. `--implementer` indica
-  dónde corrió; sin el argumento se asume el que decide el script. Para
-  revisar un cambio sin implementer, `--implementer ninguno`: la revisión
-  sigue el desvío como un rol flexible.
-- **Tope de 5 h.** Un proveedor con la ventana de 5 h en 90% o más no recibe
-  tareas nuevas si el otro puede recibirlas. Sin alternativa (el otro agotado,
-  los dos sobre el tope o un rol fijo), sigue el mismo y el script lo marca con
-  `AVISO`.
-- **Agotado.** Si un proveedor llega a 100% en alguna ventana, o Codex informa
-  que alcanzó el límite, el otro sigue solo. Si el script responde `ninguno`
-  (los dos agotados, o Claude agotado para `tester` o `release`), el
-  conductor para y le avisa al humano.
-- **Fijos en Claude:** `tester`, porque el sandbox de Codex no corre
-  `flutter test`, y `release`, porque el push desde Codex no está probado.
-- **Conductor.** Cuando el desvío es contra Claude, o Claude está sobre el
-  tope de 5 h o con presión de 5 h, el conductor manda a Codex las
-  investigaciones y los barridos de código pesados: `explorer` con `MODO: codex`, o
-  `task --model gpt-6.1-sol --effort high` para un análisis. El intake, los
-  checkpoints, la redacción de entregables y la síntesis siguen en Claude.
+### Cierre de una card (skill `cierre-de-card`)
 
-**Cómo se invoca la alternativa.**
-
-- **Planner, implementer o debugger en Claude.** El conductor invoca el mismo
-  agente con `MODO: directo` en la primera línea del prompt y el `model` de la
-  alternativa: `opus` para `planner` y `debugger`, `sonnet` para
-  `implementer`. En Claude Code 2.1.283, el alias `sonnet` apunta a Sonnet 5,
-  no a 5.5. El `model` se pasa siempre: sin él, el agente corre con el Haiku
-  del puente. **Implementer en `opus` (decisión 0004):** el conductor puede
-  usarlo cuando juzga que el PR es complejo (lógica entrelazada en varios
-  archivos, estado compartido o concurrencia, o un intento en `sonnet` que no
-  pasó la revisión). Gasta más cuota de Claude que `sonnet`, así que lo dice en
-  su reporte con el motivo, y no lo usa con presión de 5 h en Claude salvo
-  que el humano lo pida. Lo mismo vale si un puente responde `CODEX_NO_DISPONIBLE`: el
-  trabajo vuelve a Claude aunque esté sobre el tope de 5 h, porque no hay
-  alternativa. Si Claude está agotado, el conductor para y le avisa al humano.
-- **Explorer en Codex.** `MODO: codex` en la primera línea del prompt. Si
-  responde `CODEX_NO_DISPONIBLE`, se vuelve a invocar sin esa línea.
-- **Revisión en Codex.** `review --wait --model gpt-6.1-sol` del script del
-  plugin `codex`, o `adversarial-review --wait --model gpt-6.1-sol` para
-  seguridad.
-
-**Topes.**
-
-- El esfuerzo llega hasta high. xhigh, max y ultra se usan solo si el humano
-  los pide para una tarea puntual: un plan de GPT-6-Astra gastó entre 27 y 43
-  puntos de la ventana de 5 h de Codex en xhigh, y entre 5 y 7 en medium.
-- GPT-6-Astra y Claude Fable 5.1 se usan solo a pedido.
-- En Windows, el sandbox de Codex no lee carpetas dentro de `AppData` ni
-  ejecuta `flutter test`. Los tests los corre el `tester` en Claude.
+Cuando el código de una card está escrito, el conductor carga la skill
+**`cierre-de-card`** (`skills/cierre-de-card/SKILL.md`). Ahí está el
+recorrido: `tester`, `reviewer` y `security-reviewer` si aplica, los
+hallazgos fuera de alcance, `release` con el ok del humano y la retro de
+cinco líneas en `retrospectives/`.
 
 ### Nota sobre los artefactos de handoff
 
@@ -438,7 +372,10 @@ o inspección exacta que lo verifica, no está listo.
 > Sección viva. Cada lección aprendida en producción sobre una plataforma
 > destino (límites de UI, comportamiento de un cliente, contratos de
 > renderizado) se anota aquí para no redescubrirla iterando en producción.
-> Arranca vacía y se llena con la experiencia.
+> Se llena desde la línea "Plataforma" de las retros (skill
+> `cierre-de-card`). Este repo es público: cada restricción se escribe de
+> forma genérica, sin nombres de clientes, proyectos, cards ni rutas
+> personales.
 
 - (pendiente de llenar)
 

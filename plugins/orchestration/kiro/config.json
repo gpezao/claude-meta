@@ -31,6 +31,13 @@
       "inclusion": "auto",
       "name": "modelo-operativo",
       "description": "Proceso del modelo orquestado: rol de conductor, intake con grill, pipeline de subagentes (planner, implementer, tester, reviewer, security-reviewer, release, explorer, debugger), estado anclado a git y red de seguridad."
+    },
+    {
+      "claude": "plugins/orchestration/skills/cierre-de-card/SKILL.md",
+      "kiro": "cierre-de-card.md",
+      "inclusion": "auto",
+      "name": "cierre-de-card",
+      "description": "Cierre de una card o un PR: tester, reviewer y security-reviewer, hallazgos fuera de alcance, release con el ok del humano, retro de cinco líneas y restricciones de plataforma. Usar al terminar el código de una card y antes de commit, push o PR."
     }
   ],
   "agentes": {

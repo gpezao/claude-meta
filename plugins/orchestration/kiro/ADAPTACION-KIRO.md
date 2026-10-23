@@ -17,6 +17,8 @@
 | `mcp__claude_ai_Google_Drive__<herramienta>` | No hay conector de Drive en Kiro. Lo que dependa de Drive se hace desde Claude Code |
 | Hook `SessionStart` de `.claude/settings.json` | `.kiro/hooks/inicio-de-sesion.json`, generado por el espejo |
 | `.claude/handoffs/`, `revision/`, `decisions/` | Iguales: son carpetas, no dependen de la herramienta |
+| "Carga la skill `cierre-de-card`" | Está en `~/.kiro/steering/cierre-de-card.md`. Si no está cargado, léelo desde ahí |
+| Skill `cuota`, equilibrio, puente a Codex, `MODO: directo`, `RUTA: forzada` | No aplican: en Kiro no hay Codex. Cada rol corre como subagente de Kiro |
 
 ## Subagentes
 
