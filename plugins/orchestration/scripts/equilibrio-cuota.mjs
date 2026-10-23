@@ -214,21 +214,50 @@ function fmt(p) {
   return `${p.nombre.padEnd(6)} ${semana} · 5 h ${h5}${p.agotado ? " · AGOTADO" : ""}`;
 }
 
-function main(argv) {
-  const arg = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : undefined; };
-  const cache = path.join(os.homedir(), ".claude", "cache");
-  const estadoRuta = path.join(cache, "equilibrio-cuota.json");
-  const ahora = Date.now() / 1000;
+// Anota la corrida en el historial que lee la medición semanal. Pasado el
+// tope, el archivo se renombra a .1 y se empieza otro.
+const TOPE_HISTORIAL = 2 * 1024 * 1024;
 
+function anotarHistorial(cache, linea) {
+  const ruta = path.join(cache, "equilibrio-historial.jsonl");
+  try {
+    try { if (fs.statSync(ruta).size > TOPE_HISTORIAL) fs.renameSync(ruta, `${ruta}.1`); } catch {}
+    fs.appendFileSync(ruta, `${JSON.stringify(linea)}\n`);
+  } catch {}
+}
+
+// Lee las cachés, decide y guarda el estado de la histéresis.
+// Devuelve { claude, codex, desvio, roles, conductorDelega }.
+export function evaluar({ cache = path.join(os.homedir(), ".claude", "cache"), ahora = Date.now() / 1000, implementer, origen = "cli", rol = null } = {}) {
+  const estadoRuta = path.join(cache, "equilibrio-cuota.json");
   const claude = leerProveedor("claude", leerJson(path.join(cache, "claude-usage.json")), ahora);
   const codex = leerProveedor("codex", leerJson(path.join(cache, "codex-usage.json")), ahora);
   const previo = leerJson(estadoRuta)?.desvio ?? null;
-  const implementer = arg("--implementer");
   const r = decidir({ claude, codex, previo, implementer });
 
+  // Escritura atómica: los hooks leen este archivo en paralelo.
+  const tmp = `${estadoRuta}.${process.pid}.tmp`;
   try {
-    fs.writeFileSync(estadoRuta, JSON.stringify({ desvio: r.desvio, actualizado: new Date().toISOString(), ritmoClaude: claude.ritmo ?? null, ritmoCodex: codex.ritmo ?? null }, null, 2));
-  } catch {}
+    fs.writeFileSync(tmp, JSON.stringify({ desvio: r.desvio, actualizado: new Date().toISOString(), ritmoClaude: claude.ritmo ?? null, ritmoCodex: codex.ritmo ?? null }, null, 2));
+    fs.renameSync(tmp, estadoRuta);
+  } catch {
+    try { fs.rmSync(tmp, { force: true }); } catch {}
+  }
+  anotarHistorial(cache, {
+    ts: new Date(ahora * 1000).toISOString(),
+    origen,
+    rol,
+    ritmoClaude: claude.ritmo ?? null,
+    ritmoCodex: codex.ritmo ?? null,
+    desvio: r.desvio,
+    proveedores: Object.fromEntries(Object.entries(r.roles).map(([n, x]) => [n, x.proveedor])),
+  });
+  return { claude, codex, ...r };
+}
+
+function main(argv) {
+  const arg = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : undefined; };
+  const { claude, codex, ...r } = evaluar({ implementer: arg("--implementer"), rol: arg("--rol") ?? null });
 
   const rol = arg("--rol");
   if (rol) {

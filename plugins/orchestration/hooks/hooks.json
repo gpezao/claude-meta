@@ -1,6 +1,18 @@
 {
-  "description": "Aviso de contexto y notas de sesión tras compactar (decisión 0005).",
+  "description": "Aviso de contexto y notas de sesión tras compactar (decisión 0005). Equilibrio de cuota sobre las invocaciones de roles flexibles (decisión 0003).",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/equilibrio-hook.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
