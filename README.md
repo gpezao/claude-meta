@@ -144,7 +144,7 @@ plugins/
     CHECKPOINTS.md         ← forma de los checkpoints y carpeta revision/
     REDACCION-DE-ENTREGABLES.md ← tono y fuentes de lo que se comparte
     NOTAS-DE-SESION.md     ← notas que sobreviven a la compactación
-    hooks/hooks.json       ← aviso de contexto, notas tras compactar y equilibrio al delegar
+    hooks/hooks.json       ← aviso de contexto, notas tras compactar, equilibrio al delegar y ruta del plugin
     scripts/               ← equilibrio de cuota y sus hooks
     skills/
       cuota/               ← modelo y proveedor por rol, equilibrio, puente a Codex
